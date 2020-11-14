@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message WheelsCounter {
+    int32 left = 1;
+    int32 right = 2;
+}
