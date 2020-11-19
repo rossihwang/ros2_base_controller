@@ -4,14 +4,14 @@
 
 #include <pb.h>
 #include <unordered_map>
-#include <msg/wheels_counter.pb.h>
+#include <msg/counter2.pb.h>
 #include <msg/imu.pb.h>
 #include <msg/twist.pb.h>
 #include <msg/logging.pb.h>
 #include <msg/pwm_ctrl.pb.h>
 
 enum class MessageId {
-  WHL_CNTR = 0,
+  CNTR2 = 0,
   IMU,
   TWIST,
   PWM_CTRL,

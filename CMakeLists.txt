@@ -21,18 +21,27 @@ find_package(rclcpp REQUIRED)
 find_package(serial REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+set(DEPENDENCIES
+  rclcpp
+  serial
+  geometry_msgs
+  nav_msgs
+  Eigen3
+)
 
 set(NANO_PB_SRC 3rdparty/nanopb/src/pb_common.c 3rdparty/nanopb/src/pb_decode.c 3rdparty/nanopb/src/pb_encode.c)
-set(MSG_SRC shared/msg/wheels_counter.pb.c 
-            shared/msg/imu.pb.c 
+set(MSG_SRC shared/msg/imu.pb.c 
             shared/msg/logging.pb.c 
             shared/msg/pwm_ctrl.pb.c 
             shared/msg/twist.pb.c 
             shared/msg/Vector3.pb.c
+            shared/msg/counter2.pb.c
             shared/pigeon/msg_def.cpp)
 add_executable(base_controller_node src/base_controller.cpp src/base_controller_node.cpp src/diff_drive.cpp ${NANO_PB_SRC} ${MSG_SRC})
 target_include_directories(base_controller_node PUBLIC
@@ -41,11 +50,7 @@ target_include_directories(base_controller_node PUBLIC
   shared
   3rdparty/nanopb/include)
 
-ament_target_dependencies(base_controller_node
-  rclcpp
-  serial
-  geometry_msgs
-  nav_msgs)
+ament_target_dependencies(base_controller_node ${DEPENDENCIES})
 
 install(TARGETS base_controller_node
   EXPORT export_${PROJECT_NAME}

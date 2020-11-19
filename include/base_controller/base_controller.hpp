@@ -24,6 +24,8 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   std::string port_;
   int baud_;
+  std::string base_frame_id_;
+  std::string global_frame_id_;
   DiffDrive drive_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_cb_;
 

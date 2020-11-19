@@ -7,10 +7,10 @@
 #include <msg/twist.pb.h>
 #include <msg/logging.pb.h>
 #include <msg/pwm_ctrl.pb.h>
-#include <msg/wheels_counter.pb.h>
+#include <msg/counter2.pb.h>
 
 enum class MessageId {
-  WHL_CNTR = 0,
+  CNTR2 = 0,
   IMU,
   TWIST,
   PWM_CTRL,
@@ -18,7 +18,7 @@ enum class MessageId {
 };
 
 std::unordered_map<MessageId, const pb_msgdesc_t*> fields_map({
-  {MessageId::WHL_CNTR, WheelsCounter_fields},
+  {MessageId::CNTR2, Counter2_fields},
   {MessageId::IMU, Imu_fields},
   {MessageId::TWIST, Twist_fields},
   {MessageId::PWM_CTRL, PwmCtrl_fields},

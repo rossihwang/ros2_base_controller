@@ -3,7 +3,7 @@
 #include "pigeon/msg_def.hpp"
 
 std::unordered_map<MessageId, const pb_msgdesc_t*> fields_map({
-  {MessageId::WHL_CNTR, WheelsCounter_fields},
+  {MessageId::CNTR2, Counter2_fields},
   {MessageId::IMU, Imu_fields},
   {MessageId::TWIST, Twist_fields},
   {MessageId::PWM_CTRL, PwmCtrl_fields},

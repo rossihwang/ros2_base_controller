@@ -13,7 +13,7 @@ class Kinematic {
   Kinematic() = default;
   ~Kinematic() = default;
   virtual std::unique_ptr<std::vector<int32_t>> from_twist(const geometry_msgs::msg::Twist::SharedPtr msg) = 0;
-  virtual nav_msgs::msg::Odometry::UniquePtr to_odometry(const std::vector<int32_t>& counts) = 0;
+  virtual nav_msgs::msg::Odometry::SharedPtr to_odometry(const std::vector<int32_t>& counts) = 0;
 };
 
 }  // namespace motion

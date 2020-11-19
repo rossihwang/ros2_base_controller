@@ -22,7 +22,7 @@ BaseController::BaseController(const std::string& name, const rclcpp::NodeOption
     std::exit(EXIT_FAILURE);
   }
   pg_.create_subscriber(MessageId::LOG, std::bind(&BaseController::log_pigeon_callback, this, _1, _2));
-  pg_.create_subscriber(MessageId::WHL_CNTR, std::bind(&BaseController::wheels_counter_callback, this, _1, _2));
+  pg_.create_subscriber(MessageId::CNTR2, std::bind(&BaseController::wheels_counter_callback, this, _1, _2));
 
   pg_.register_read(std::bind(static_cast<size_t (serial::Serial::*)(uint8_t*, size_t)>(&serial::Serial::read), serial_ptr_, _1, _2));
   pg_.register_write(std::bind(static_cast<size_t (serial::Serial::*)(const uint8_t*, size_t)>(&serial::Serial::write), serial_ptr_, _1, _2));
@@ -40,12 +40,12 @@ BaseController::BaseController(const std::string& name, const rclcpp::NodeOption
 BaseController::~BaseController() = default;
 
 void BaseController::twist_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-  WheelsCounter message = WheelsCounter_init_zero;
+  Counter2 message = Counter2_init_zero;
   
   auto targets = drive_.from_twist(msg);
   message.right = (*targets)[0];
   message.left = (*targets)[1];
-  pg_.publish<WheelsCounter>(MessageId::WHL_CNTR, message);
+  pg_.publish<Counter2>(MessageId::CNTR2, message);
 }
 
 void BaseController::log_pigeon_callback(const uint8_t *data, uint16_t length) {
@@ -66,26 +66,33 @@ void BaseController::log_pigeon_callback(const uint8_t *data, uint16_t length) {
 }
 
 void BaseController::wheels_counter_callback(const uint8_t *data, uint16_t length) {
-  WheelsCounter message = WheelsCounter_init_zero;
+  Counter2 message = Counter2_init_zero;
 
   bool status;
   pb_istream_t stream = pb_istream_from_buffer(data, length);
-  status = pb_decode(&stream, WheelsCounter_fields, &message);
+  status = pb_decode(&stream, Counter2_fields, &message);
   if (status) {
-    RCLCPP_INFO(get_logger(), "right: %d, left: %d", message.right, message.left);
+    int32_t rtarget, ltarget;
+    std::tie(rtarget, ltarget) = drive_.get_targets();
+    RCLCPP_INFO(get_logger(), "rtarget: %d, right: %d, ltarget: %d, left: %d", rtarget, message.right, ltarget, message.left);
   } else {
     RCLCPP_WARN(get_logger(), "Encoder Decode failed");
   }
 
-  nav_msgs::msg::Odometry::UniquePtr odom;
+  nav_msgs::msg::Odometry::SharedPtr odom;
   std::vector counts = {message.right, message.left};
   odom = drive_.to_odometry(counts);
+  odom->header.stamp = now();
+  odom->header.frame_id = global_frame_id_;
+  odom->child_frame_id = base_frame_id_;
   odom_pub_->publish(*odom);
 }
 
 void BaseController::create_parameter() {
   port_ = declare_parameter<std::string>("port", "/dev/ttyACM0");
   baud_ = declare_parameter<int>("baud", 115200);
+  base_frame_id_ = declare_parameter<std::string>("base_frame_id", "base_footprint");
+  global_frame_id_ = declare_parameter<std::string>("global_frame_id", "map");
 
   // set_on_parameters_set_callback (
   //   [this](std::vector<rclcpp::Parameter> parameters) -> rcl_interfaces::msg::SetParametersResult {
@@ -119,6 +126,10 @@ rcl_interfaces::msg::SetParametersResult BaseController::update_callback(const s
       port_ = param.as_string();
     } else if (param.get_name() == "baud") {
       baud_ = param.as_int();
+    } else if (param.get_name() == "base_frame_id") {
+      base_frame_id_ = param.as_string();
+    } else if (param.get_name() == "global_frame_id") {
+      global_frame_id_ = param.as_string();
     }
   }
   return result;
